@@ -16,6 +16,7 @@ namespace MilesElectric
     public partial class Form1 : Form
     {
         private ulong baseaddr;
+        private ulong igtaddr;
         private ulong basepos = 0x5BBE768;
         private ulong baserestart = 0x52225C0;
         private int[] offsetpos = new[] {8, 0x44};
@@ -49,6 +50,7 @@ namespace MilesElectric
             currentposaddr = currentposaddr + (ulong) offsetpos[1];
             currentrestartaddr = Reader.Default.Read<ulong>(baseaddr + baserestart, out _);
             currentrestartaddr = Reader.Default.Read<ulong>(currentrestartaddr, out _);
+            igtaddr = currentrestartaddr + 0x270;
             currentrestartaddr = Reader.Default.Read<ulong>(currentrestartaddr + 0x170, out _);
             currentrestartaddr += 0x40;
             memWatchTimer.Enabled = true;
@@ -67,7 +69,7 @@ namespace MilesElectric
             for (ulong i = 0; i < 3; i++)
             {
                 currentrestart[i] = Reader.Default.Read<float>(currentrestartaddr + i * 4, out _);
-            }
+            }           
             
             posLabel.Text = $"Current Position:\n({currentpos[0]},{currentpos[1]},{currentpos[2]})";
             respawnPosLabel.Text = $"Current Respawn Position:\n({currentrestart[0]},{currentrestart[1]},{currentrestart[2]})";
@@ -77,6 +79,7 @@ namespace MilesElectric
         {
             if (memWatchTimer.Enabled)
             {
+                Writer.Default.Write(igtaddr, 600.0f);
                 for (ulong i = 0; i < 3; i++)
                 {
                     Writer.Default.Write(currentrestartaddr + i * 4, currentpos[i]);
