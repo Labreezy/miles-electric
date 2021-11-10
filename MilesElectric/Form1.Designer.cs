@@ -32,12 +32,13 @@
             this.components = new System.ComponentModel.Container();
             this.memWatchTimer = new System.Windows.Forms.Timer(this.components);
             this.attachBtn = new System.Windows.Forms.Button();
-            this.stgLabel = new System.Windows.Forms.Label();
+            this.boostLabel = new System.Windows.Forms.Label();
             this.respawnPosLabel = new System.Windows.Forms.Label();
             this.savePosBtn = new System.Windows.Forms.Button();
             this.posLabel = new System.Windows.Forms.Label();
             this.refreshButton = new System.Windows.Forms.Button();
             this.dimnesionCheck = new System.Windows.Forms.CheckBox();
+            this.wispLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // memWatchTimer
@@ -55,17 +56,17 @@
             this.attachBtn.UseVisualStyleBackColor = true;
             this.attachBtn.Click += new System.EventHandler(this.attachBtn_Click);
             // 
-            // stgLabel
+            // boostLabel
             // 
-            this.stgLabel.Location = new System.Drawing.Point(13, 140);
-            this.stgLabel.Name = "stgLabel";
-            this.stgLabel.Size = new System.Drawing.Size(184, 39);
-            this.stgLabel.TabIndex = 2;
-            this.stgLabel.Text = "Current Stage:";
+            this.boostLabel.Location = new System.Drawing.Point(13, 140);
+            this.boostLabel.Name = "boostLabel";
+            this.boostLabel.Size = new System.Drawing.Size(184, 19);
+            this.boostLabel.TabIndex = 2;
+            this.boostLabel.Text = "Boost:";
             // 
             // respawnPosLabel
             // 
-            this.respawnPosLabel.Location = new System.Drawing.Point(13, 179);
+            this.respawnPosLabel.Location = new System.Drawing.Point(12, 179);
             this.respawnPosLabel.Name = "respawnPosLabel";
             this.respawnPosLabel.Size = new System.Drawing.Size(184, 43);
             this.respawnPosLabel.TabIndex = 3;
@@ -110,22 +111,34 @@
             this.dimnesionCheck.Text = "Save As 2D";
             this.dimnesionCheck.UseVisualStyleBackColor = true;
             // 
+            // wispLabel
+            // 
+            this.wispLabel.Location = new System.Drawing.Point(13, 159);
+            this.wispLabel.Name = "wispLabel";
+            this.wispLabel.Size = new System.Drawing.Size(174, 16);
+            this.wispLabel.TabIndex = 8;
+            this.wispLabel.Text = "Wisp ID:";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(214, 399);
+            this.Controls.Add(this.wispLabel);
             this.Controls.Add(this.dimnesionCheck);
             this.Controls.Add(this.refreshButton);
             this.Controls.Add(this.posLabel);
             this.Controls.Add(this.savePosBtn);
             this.Controls.Add(this.respawnPosLabel);
-            this.Controls.Add(this.stgLabel);
+            this.Controls.Add(this.boostLabel);
             this.Controls.Add(this.attachBtn);
             this.Name = "Form1";
             this.Text = "Miles Electric";
             this.ResumeLayout(false);
         }
+
+        private System.Windows.Forms.Label boostLabel;
+        private System.Windows.Forms.Label wispLabel;
 
         private System.Windows.Forms.CheckBox dimnesionCheck;
 
