@@ -10,6 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Reloaded.Memory.Sources;
+using Reloaded.Assembler;
+using Reloaded.Memory.Exceptions;
+using Reloaded.Memory.Sigscan;
+using Reloaded.Memory.Sigscan.Structs;
 
 namespace MilesElectric
 {
@@ -18,25 +22,28 @@ namespace MilesElectric
         private Process colorsProc;
         private IntPtr baseaddr;
         private ulong igtaddr;
-        private int basepos = 0x5BBE768;
-        private int baserestart = 0x52225C0;
+        private int basepos = 0x5C4D858;
+        private int baserestart = 0x52B16B0;
+
         private int[] offsetpos = new[] {8, 0x44};
-        private int boostwispstart = 0x18D203B0;
-        private int[] boostwispoffsets = new[] {0x4C,0x468,0x12C,0};
+
+        //private int boostwispstart = 0x5222030;
+        //private int[] boostwispoffsets = new[] {0x68,0x88,0x48,8,0x10,0x18,0xC8,0x40}; //thanks jujstme for this doozy
         private Vec3 currentpos = new Vec3();
         private Vec3 currentrestart = new Vec3();
         private float currentboost = -1f;
-        private byte currentwisp = 0xFF;
+        private int currentwisp = -1;
         private float savedboost;
-        private byte savedwisp;
+        private int savedwisp;
         private string currentstage = "";
-        private ulong  currentbwaddr, bwptraddr, codeaddr;
-        private IntPtr posAddr, restartAddr, igtAddr;
+        private ulong currentbwaddr, bwptraddr, codeaddr;
+        private IntPtr posAddr, restartAddr, igtAddr, boostWispAddr;
         private IMemory memory;
+
         public Form1()
         {
             InitializeComponent();
-            
+
         }
 
         public struct Vec3
@@ -45,34 +52,50 @@ namespace MilesElectric
             public float y;
             public float z;
         }
-        
+
+
         private void attachBtn_Click(object sender, EventArgs e)
         {
-            
+
+
             colorsProc = Process.GetProcessesByName("Sonic Colors - Ultimate").FirstOrDefault();
             if (colorsProc == null)
             {
                 MessageBox.Show("Could not attach");
                 return;
             }
-    
+
             memory = new ExternalMemory(colorsProc);
             attachBtn.Enabled = false;
             MessageBox.Show("Attached to colors successfully!");
             baseaddr = colorsProc.MainModule.BaseAddress;
             posAddr = IntPtr.Zero;
-            memory.Read<IntPtr>(IntPtr.Add(baseaddr, basepos), out posAddr);
-            posAddr = IntPtr.Add(posAddr, offsetpos[0]);
-            memory.Read<IntPtr>(posAddr, out posAddr);
-            posAddr = IntPtr.Add(posAddr, offsetpos[1]);
-            restartAddr = IntPtr.Zero;
-            memory.Read<IntPtr>(IntPtr.Add(baseaddr, baserestart), out restartAddr);
-            memory.Read(restartAddr, out restartAddr);
-            igtAddr = IntPtr.Add(restartAddr, 0x270);
-            
-            memory.Read(IntPtr.Add(restartAddr, 0x170), out restartAddr);
-            restartAddr = IntPtr.Add(restartAddr, 0x40);
-            //hookProcessBoost();
+            try
+            {
+
+                memory.Read<IntPtr>(IntPtr.Add(baseaddr, basepos), out posAddr);
+                posAddr = IntPtr.Add(posAddr, offsetpos[0]);
+                memory.Read<IntPtr>(posAddr, out posAddr);
+                posAddr = IntPtr.Add(posAddr, offsetpos[1]);
+                restartAddr = IntPtr.Zero;
+                memory.Read<IntPtr>(IntPtr.Add(baseaddr, baserestart), out restartAddr);
+                memory.Read(restartAddr, out restartAddr);
+                igtAddr = IntPtr.Add(restartAddr, 0x270);
+
+                memory.Read(IntPtr.Add(restartAddr, 0x170), out restartAddr);
+                restartAddr = IntPtr.Add(restartAddr, 0x40);
+                /*boostWispAddr = IntPtr.Add(baseaddr, boostwispstart);
+                foreach(int off in boostwispoffsets)
+                {
+                   memory.Read(IntPtr.Add(boostWispAddr, off), out boostWispAddr);
+                }*/
+            }
+            catch (MemoryException)
+            {
+                Debug.Print("memexception");
+            }
+
+
 
 
 
@@ -80,20 +103,18 @@ namespace MilesElectric
             savePosBtn.Enabled = true;
             refreshButton.Enabled = true;
         }
-        
+
         private void memWatchTimer_Tick(object sender, EventArgs e)
         {
 
-            memory.Read(posAddr, out currentpos); 
+            memory.Read(posAddr, out currentpos);
             memory.Read(restartAddr, out currentrestart);
-            
-
           
 
-            
             posLabel.Text = $"Current Position:\n({currentpos.x},{currentpos.y},{currentpos.z})";
-            respawnPosLabel.Text = $"Current Respawn Position:\n({currentrestart.x},{currentrestart.y},{currentrestart.z})";
-            
+            respawnPosLabel.Text =
+                $"Current Respawn Position:\n({currentrestart.x},{currentrestart.y},{currentrestart.z})";
+
         }
 
         private void savePosBtn_Click(object sender, EventArgs e)
@@ -109,19 +130,20 @@ namespace MilesElectric
                 if (dimnesionCheck.Checked)
                 {
                     memory.Write(IntPtr.Add(restartAddr, 0x10), 1);
-                    memory.Write(IntPtr.Add(restartAddr ,0x14), 9);
-                    
+                    memory.Write(IntPtr.Add(restartAddr, 0x14), 9);
+
                 }
                 else
                 {
                     memory.Write(IntPtr.Add(restartAddr, 0x10), 0);
-                    memory.Write(IntPtr.Add(restartAddr ,0x14), 0);
+                    memory.Write(IntPtr.Add(restartAddr, 0x14), 0);
                 }
+
                 //no initial speed
                 memory.Write(IntPtr.Add(restartAddr, 0x18), 0);
                 savedboost = currentboost;
                 savedwisp = currentwisp;
-                
+
 
 
             }
@@ -139,14 +161,15 @@ namespace MilesElectric
             memory.Read<IntPtr>(IntPtr.Add(baseaddr, baserestart), out restartAddr);
             memory.Read(restartAddr, out restartAddr);
             igtAddr = IntPtr.Add(restartAddr, 0x270);
-            
             memory.Read(IntPtr.Add(restartAddr, 0x170), out restartAddr);
             restartAddr = IntPtr.Add(restartAddr, 0x40);
 
-           
-            
-            
+            memory.Read(IntPtr.Add(boostWispAddr, 0x10), out currentboost);
+            memory.Read(IntPtr.Add(boostWispAddr, 0x20), out currentwisp);
+
+
             return;
         }
     }
+
 }
